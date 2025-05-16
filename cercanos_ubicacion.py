@@ -1,3 +1,7 @@
+# Coordenadas Lat y Long de Tec
+# Funcional a partir de coordenadas específicas
+# Muestra con ícono las clínicas cercanas
+
 import streamlit as st
 import folium
 from folium.features import CustomIcon
