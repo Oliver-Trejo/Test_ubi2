@@ -25,19 +25,20 @@ folium.Marker(
 # --- CONSULTA A GOOGLE PLACES API ---
 API_KEY = st.secrets["google_places_key"]
 
+# Usar keywords para más flexibilidad
 tipo_iconos = {
     "hospital": "https://cdn-icons-png.flaticon.com/512/1484/1484848.png",
-    "clinic": "https://cdn-icons-png.flaticon.com/512/2967/2967350.png",
-    "laboratory": "https://cdn-icons-png.flaticon.com/512/3343/3343841.png"
+    "clínica": "https://cdn-icons-png.flaticon.com/512/2967/2967350.png",
+    "laboratorio": "https://cdn-icons-png.flaticon.com/512/3343/3343841.png"
 }
 
-# Lista para guardar resultados
+# Lista para la tabla
 resultados_tabla = []
 
-for tipo, icon_url in tipo_iconos.items():
+for keyword, icon_url in tipo_iconos.items():
     url = (
         f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?"
-        f"location={lat},{lon}&radius=3000&type={tipo}&key={API_KEY}"
+        f"location={lat},{lon}&radius=3000&keyword={keyword}&key={API_KEY}"
     )
     response = requests.get(url)
     lugares = response.json().get("results", [])
@@ -47,8 +48,9 @@ for tipo, icon_url in tipo_iconos.items():
         direccion = lugar.get("vicinity", "")
         ubicacion = lugar["geometry"]["location"]
 
-        # Agregar al mapa
+        # Ícono personalizado
         icono_personalizado = CustomIcon(icon_image=icon_url, icon_size=(40, 40))
+
         folium.Marker(
             [ubicacion["lat"], ubicacion["lng"]],
             popup=f"{nombre}\n{direccion}",
@@ -56,20 +58,25 @@ for tipo, icon_url in tipo_iconos.items():
             icon=icono_personalizado
         ).add_to(mapa)
 
-        # Agregar a tabla
+        # Guardar en la tabla
         resultados_tabla.append({
             "Nombre": nombre,
             "Dirección": direccion,
-            "Tipo": tipo.capitalize()
+            "Categoría": keyword.capitalize()
         })
 
 # Mostrar mapa
 folium_static(mapa)
 
-# Mostrar tabla
+# Mostrar resultados
 if resultados_tabla:
-    st.subheader("📋 Lugares encontrados")
     df_resultados = pd.DataFrame(resultados_tabla)
+
+    st.subheader("📋 Tabla de lugares encontrados")
     st.dataframe(df_resultados)
+
+    st.subheader("📝 Lista rápida:")
+    for i, lugar in enumerate(resultados_tabla, 1):
+        st.markdown(f"**{i}. {lugar['Nombre']}**\n📍 {lugar['Dirección']}\n🩺 {lugar['Categoría']}")
 else:
     st.info("No se encontraron lugares cercanos.")
