@@ -1,3 +1,7 @@
+# Código Funcional para obtener ubicación exacta
+# Plan: Usar este código para obtener únicamente coordenadas
+# Complementarlo con API PLACES para obtener los hospitales cercanos
+
 import streamlit as st
 from streamlit_geolocation import streamlit_geolocation
 import folium
