@@ -1,12 +1,9 @@
-# Coordenadas Lat y Long de Tec
-# Funcional a partir de coordenadas específicas
-# Muestra con ícono las clínicas cercanas
-
 import streamlit as st
 import folium
 from folium.features import CustomIcon
 from streamlit_folium import folium_static
 import requests
+import pandas as pd
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="🧭 Clínicas cercanas", layout="centered")
@@ -34,6 +31,9 @@ tipo_iconos = {
     "laboratory": "https://cdn-icons-png.flaticon.com/512/3343/3343841.png"
 }
 
+# Lista para guardar resultados
+resultados_tabla = []
+
 for tipo, icon_url in tipo_iconos.items():
     url = (
         f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?"
@@ -47,8 +47,8 @@ for tipo, icon_url in tipo_iconos.items():
         direccion = lugar.get("vicinity", "")
         ubicacion = lugar["geometry"]["location"]
 
+        # Agregar al mapa
         icono_personalizado = CustomIcon(icon_image=icon_url, icon_size=(40, 40))
-
         folium.Marker(
             [ubicacion["lat"], ubicacion["lng"]],
             popup=f"{nombre}\n{direccion}",
@@ -56,5 +56,20 @@ for tipo, icon_url in tipo_iconos.items():
             icon=icono_personalizado
         ).add_to(mapa)
 
-# Mostrar mapa con todos los resultados
+        # Agregar a tabla
+        resultados_tabla.append({
+            "Nombre": nombre,
+            "Dirección": direccion,
+            "Tipo": tipo.capitalize()
+        })
+
+# Mostrar mapa
 folium_static(mapa)
+
+# Mostrar tabla
+if resultados_tabla:
+    st.subheader("📋 Lugares encontrados")
+    df_resultados = pd.DataFrame(resultados_tabla)
+    st.dataframe(df_resultados)
+else:
+    st.info("No se encontraron lugares cercanos.")
